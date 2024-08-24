@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3 uid="uid://iksr336baf7"]
+
+[ext_resource type="Script" path="res://main.gd" id="1_bgwq8"]
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource("1_bgwq8")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="Window" type="Window" parent="."]
+transparent_bg = true
+transient = true
+unresizable = true
+borderless = true
+always_on_top = true
+transparent = true
