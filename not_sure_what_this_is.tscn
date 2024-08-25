@@ -10,18 +10,20 @@
 resource_name = "player.gd"
 script/source = "extends Area2D
 
-@export var speed = 400 # How fast the player will move (pixels/sec).
+@export var speed = 1 # How fast the player will move (pixels/sec).
 @export var player_size: Vector2i = Vector2i(48	, 48)
 @onready var _MainWindow: Window = get_window()
 @onready var _SubWindow: Window = $Window
-var animation_selector = 0
+@onready var animation_selector = 0
+var last_position = _MainWindow
 var screen_size # Size of the game window
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	screen_size = get_viewport_rect().size
+	get_tree().get_root().set_transparent_background(true)
+	
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	#_on_timer_timeout()
 	_MainWindow.set_canvas_cull_mask_bit(1, false)
 	var velocity = Vector2.ZERO # The player's movement vector.
 	if animation_selector ==  0:
@@ -39,11 +41,14 @@ func _process(delta):
 		velocity = velocity.normalized() * speed
 		$AnimatedSprite2D.play()
 	position += velocity * delta
-	position = position.clamp(Vector2.ZERO, screen_size)
+	position = position.clamp(Vector2(player_size/2), Vector2(screen_size - Vector2(player_size/2)))
+	last_position = _MainWindow.position
+	_MainWindow.position = last_position + Vector2i((velocity*speed)*1.5)
+	_MainWindow.position = _MainWindow.position.clamp(Vector2.ZERO, DisplayServer.screen_get_size() - (Vector2i(player_size)+Vector2i(player_size)/4))
+	
 	if velocity.x != 0:
 		$AnimatedSprite2D.animation = \"walk\"
 		$AnimatedSprite2D.flip_v = false
-		# See the note below about the following boolean assignment.
 		$AnimatedSprite2D.flip_h = velocity.x < 0
 	elif velocity.y != 0 and velocity.y < 0:
 		$AnimatedSprite2D.animation = \"up\"
@@ -56,6 +61,7 @@ func _process(delta):
 func _on_timer_timeout() -> void:
 	animation_selector = floor(randf_range(0,3))
 	print(animation_selector)
+
 "
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_5v4hp"]
@@ -116,9 +122,8 @@ size = Vector2(46, 45)
 
 [node name="Player" type="Area2D"]
 visibility_layer = 3
-position = Vector2(485, 624)
+position = Vector2(32, 39)
 script = SubResource("GDScript_prqq1")
-speed = 40
 metadata/_edit_group_ = true
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
