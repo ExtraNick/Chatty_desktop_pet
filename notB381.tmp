@@ -1,0 +1,154 @@
+[gd_scene load_steps=9 format=3 uid="uid://c0ci8rnlg2lwe"]
+
+[ext_resource type="Texture2D" uid="uid://bx0fsn3w6t35a" path="res://demonite_idle1.png" id="1_x3e4l"]
+[ext_resource type="Texture2D" uid="uid://cw04ljy6ye5mj" path="res://demonite_idle3.png" id="2_tj1yi"]
+[ext_resource type="Texture2D" uid="uid://cu6nb18u857r5" path="res://demonite_idle2.png" id="3_63mtt"]
+[ext_resource type="Texture2D" uid="uid://d1bbwhcspj627" path="res://demonite_moving_right1.png" id="4_f1ch0"]
+[ext_resource type="Texture2D" uid="uid://bjdfmky03voyc" path="res://demonite_moving_right2.png" id="5_y5b51"]
+
+[sub_resource type="GDScript" id="GDScript_prqq1"]
+resource_name = "player.gd"
+script/source = "extends Area2D
+
+@export var speed = 1 # How fast the player will move (pixels/sec).
+@export var player_size: Vector2i = Vector2i(48	, 48)
+@onready var _MainWindow: Window = DisplayServer.screen_get_size()
+@onready var _SubWindow: Window = $Window
+@onready var animation_selector = 0
+var last_position = _MainWindow
+var screen_size # Size of the game window
+var sticked_side = false
+# Called when the node enters the scene tree for the first time.
+#var total_maximum_window_size = DisplayServer.screen_get_size()
+func _ready():
+	#screen_size = get_viewport_rect().size
+	get_tree().get_root().set_transparent_background(true)
+	#var pet_play_area = total_maximum_window_size - Vector2i(0, get_taskbar_height())
+	#_MainWindow.position = pet_play_area
+	print(DisplayServer.screen_get_size())
+	print(Vector2.ZERO)
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta):
+	_MainWindow.set_canvas_cull_mask_bit(1, false)
+	var velocity = Vector2.ZERO # The player's movement vector.
+	if animation_selector ==  0 and sticked_side == false:
+		$AnimatedSprite2D.animation = \"idle\"
+	if animation_selector == 2 and sticked_side == false:
+		velocity.x += 1
+	if animation_selector == 1 and sticked_side == false:
+		velocity.x -= 1
+	if Input.is_action_pressed(\"move_down\"):
+		velocity.y += 1
+	if Input.is_action_pressed(\"move_up\"):
+		velocity.y -= 1
+
+	if velocity.length() > 0:
+		velocity = velocity.normalized() * speed
+		$AnimatedSprite2D.play()
+	position += velocity * delta
+	position = position.clamp(Vector2(player_size/2), Vector2(Vector2(_MainWindow.position) - Vector2(player_size/2)))
+	last_position = _MainWindow.position
+	_MainWindow.position = last_position + Vector2i((velocity*speed)*1.5)
+	#_MainWindow.position = _MainWindow.position.clamp(Vector2.ZERO, DisplayServer.screen_get_size() - (Vector2i(player_size)+Vector2i(player_size)/4))
+	if _MainWindow.position.x == 1896 or _MainWindow.position.x == 24:
+		sticked_side = true
+		print(\"Sticking to side\")
+		
+		
+	if velocity.x != 0:
+		$AnimatedSprite2D.animation = \"walk\"
+		$AnimatedSprite2D.flip_v = false
+		$AnimatedSprite2D.flip_h = velocity.x < 0
+	elif velocity.y != 0 and velocity.y < 0:
+		$AnimatedSprite2D.animation = \"up\"
+	elif velocity.y != 0 and velocity.y > 0:
+		$AnimatedSprite2D.animation = \"fall\"
+	elif velocity.x == 0 and velocity.y == 0:
+		$AnimatedSprite2D.animation = \"idle\"
+	print(_MainWindow.position.x)
+
+
+func _on_timer_timeout() -> void:
+	animation_selector = floor(randf_range(0,3))
+	print(animation_selector)
+func get_taskbar_height(): #from https://www.reddit.com/r/godot/comments/s5rjsv/is_there_a_way_to_get_taskbar_height_on_windows/
+	return DisplayServer.screen_get_size().y - DisplayServer.screen_get_usable_rect().size.y
+"
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_5v4hp"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_tj1yi")
+}],
+"loop": true,
+"name": &"fall",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_x3e4l")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_tj1yi")
+}, {
+"duration": 1.0,
+"texture": ExtResource("1_x3e4l")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_63mtt")
+}, {
+"duration": 1.0,
+"texture": ExtResource("1_x3e4l")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_tj1yi")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_63mtt")
+}],
+"loop": true,
+"name": &"up",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_f1ch0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_y5b51")
+}],
+"loop": false,
+"name": &"walk",
+"speed": 10.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ghulo"]
+size = Vector2(46, 45)
+
+[node name="Player" type="Area2D"]
+visibility_layer = 3
+position = Vector2(60, 37)
+script = SubResource("GDScript_prqq1")
+speed = null
+player_size = null
+metadata/_edit_group_ = true
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_5v4hp")
+animation = &"walk"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 1.5)
+shape = SubResource("RectangleShape2D_ghulo")
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 5.0
+autostart = true
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

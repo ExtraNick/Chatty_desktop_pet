@@ -22,7 +22,7 @@ var sticked_side = false
 var sticked_top  = false
 # Called when the node enters the scene tree for the first time.
 var maximum_window_size = DisplayServer.screen_get_size() #Last pixel at the bottom right
-var true_position #mainly for debugging then later on for mouse position
+var true_position #mainly for debugging
 var total_maximum_window_size #also mainly for debugging
 var decide_stick #pet decides if he wants to stick or not
 var swap_cooldown = false #Sets a cooldown for sticking to screen sides horizontall
@@ -36,15 +36,12 @@ var pet_play_area_y
 var pet_play_area_x
 var sprite_position_x = 24
 var sprite_position_y = 48 
-var falling_sprite_position_y = 24
 var dragging = false
-var snapshot: Vector2  #used for snapshotting character y position when dragged
-var falling = false
-var draggable = false
+var offset #compared with mouse positio later
 func _ready():
 	#screen_size = get_viewport_rect().size
 	get_tree().get_root().set_transparent_background(true)
-	$Timer4.start()
+	
 	total_maximum_window_size = start_playable_area + maximum_window_size #The sum of starting pixel and ending pixel
 	
 	#far_x_limit = total_maximum_window_size - (Vector2i(player_size)/5)  - ((Vector2i(player_size)+Vector2i(player_size)/1))
@@ -63,7 +60,7 @@ func _process(delta):
 	#_MainWindow.set_canvas_cull_mask_bit(1, false)
 	#set_passthrough(position)
 	var velocity = Vector2.ZERO # The player's movement vector.
-	if animation_selector ==  0 and sticked_side == false and falling == false:
+	if animation_selector ==  0 and sticked_side == false:
 		$AnimatedSprite2D.animation = \"idle\"
 	if animation_selector == 2 and sticked_side == false and sticked_top == false:
 		velocity.x += 1
@@ -87,10 +84,10 @@ func _process(delta):
 		print(decide_stick)
 		if decide_stick == 0:
 			sticked_side = false #decide against swapping sides
-			print(\"no swapping aaaaaaaaab\")
-			if _MainWindow.position.x == close_x_limit.x and sticked_side == false and dragging == false and falling == false:
+			print(\"no swapping aaaaaaaaa\")
+			if _MainWindow.position.x == close_x_limit.x and sticked_side == false:
 				animation_selector = 2
-			if _MainWindow.position.x == far_x_limit.x and sticked_side == false and dragging == false and falling == false:
+			if _MainWindow.position.x == far_x_limit.x and sticked_side == false:
 				animation_selector = 1
 		if decide_stick == 1:
 			sticked_side = true
@@ -126,40 +123,28 @@ func _process(delta):
 			elif _MainWindow.position.x == far_x_limit.x:
 				$AnimatedSprite2D.rotation_degrees = 0
 				$AnimatedSprite2D.flip_h = true
-				
-	#This starts direction for corners
-			#This is for right side corner, ontop of the taskbar
 	if _MainWindow.position.x == far_x_limit.x and sticked_side == true and _MainWindow.position.y > pet_play_area_y and animation_selector == 1 and swap_direction_cooldown == true:
 		animation_selector = 2
 		$Timer3.start()
 		swap_direction_cooldown = false
-			#This is for left side corner, ontop of taskbar
 	if _MainWindow.position.x == close_x_limit.x and sticked_side == true and _MainWindow.position.y > pet_play_area_y and animation_selector == 1 and swap_direction_cooldown == true:
 		animation_selector = 2
 		$Timer3.start()
 		swap_direction_cooldown = false
-			#This is for bottom corner, where the side starts
 	if _MainWindow.position.x == close_x_limit.x and sticked_side == false and animation_selector == 1 and swap_direction_cooldown == true:
 		animation_selector = 2
 		$Timer3.start()
 		swap_direction_cooldown = false
-			#This is for far corner, where the side starts
 	if _MainWindow.position.x == far_x_limit.x and sticked_side == false and animation_selector == 2 and swap_direction_cooldown == true:
 		animation_selector = 1
 		$Timer3.start()
 		swap_direction_cooldown = false
-	if (_MainWindow.position.y == close_y_limit.y or _MainWindow.position.y == far_y_limit.y) and (_MainWindow.position.x == close_x_limit.x or _MainWindow.position.x == far_x_limit.x) and sticked_side == true and sticked_top == false and swap_direction_cooldown == true:
-		animation_selector = 1
-		$Timer3.start()
-	#if _MainWindow.position.y == far_y_limit.y and sticked_side == true and sticked_top == false and swap_direction_cooldown == true:
-		#animation_selector = 1
-		#print(\"The thing you are testing is happening\")
-	
+		
 #something is off with right side -> top corner swapping
 		
-#if (_MainWindow.position == close_x_limit) and _MainWindow.position.y == close_y_limit.y and sticked_side == true and swap_cooldown == false:		
+		
 #This controls the Top left corner swapping
-	if _MainWindow.position.y == close_y_limit.y and swap_cooldown == false and (sticked_side == true or dragging == true):
+	if (_MainWindow.position == close_x_limit) and _MainWindow.position.y == close_y_limit.y and sticked_side == true and swap_cooldown == false:
 		$Timer2.start()
 		swap_cooldown = true
 		decide_stick = floor(randf_range(0,2))
@@ -177,14 +162,14 @@ func _process(delta):
 			velocity.y = 0
 			velocity.x -= 1
 			sprite_position_y = 24
-			if _MainWindow.position.y == close_y_limit.y:
+			if _MainWindow.position.x == close_x_limit.x:
 				$AnimatedSprite2D.rotation_degrees = 180
-			elif _MainWindow.position.y == far_y_limit.y:
+			elif _MainWindow.position.x == far_x_limit.x:
 				$AnimatedSprite2D.rotation_degrees = -180
 				$AnimatedSprite2D.flip_h = false
 				
 #This controls the Top right corner swapping
-	if (_MainWindow.position.x == far_x_limit.x) and _MainWindow.position.y == far_y_limit.y and (sticked_side == true) and swap_cooldown == false:
+	if (_MainWindow.position.x == far_x_limit.x) and _MainWindow.position.y == far_y_limit.y and sticked_side == true and swap_cooldown == false:
 		$Timer2.start()
 		swap_cooldown = true
 		decide_stick = floor(randf_range(0,2))
@@ -198,18 +183,18 @@ func _process(delta):
 		if decide_stick == 1:
 			sticked_side = false
 			sticked_top = true
-			print(\"swapping to x axis DA\")
+			print(\"swapping to x axis\")
 			velocity.y = 0
 			velocity.x += 1
 			sprite_position_y = 24 #its either this one or the top
-			if _MainWindow.position.x == close_x_limit.x and close_y_limit.x:
+			if _MainWindow.position.x == close_x_limit.x:
 				$AnimatedSprite2D.rotation_degrees = 180
-			elif _MainWindow.position.x == far_x_limit.x and far_y_limit.x:
+			elif _MainWindow.position.x == far_x_limit.x:
 				$AnimatedSprite2D.rotation_degrees = -180
 				$AnimatedSprite2D.flip_h = false
 
 #Controls swapping top_right from top to side
-	if (_MainWindow.position.x == far_x_limit.x or _MainWindow.position.x == close_x_limit.x) and _MainWindow.position.y == far_y_limit.y and sticked_side == false and swap_cooldown == false:
+	if (_MainWindow.position.x == far_x_limit.x) and _MainWindow.position.y == far_y_limit.y and sticked_side == false and swap_cooldown == false:
 		$Timer2.start()
 		swap_cooldown = true
 		decide_stick = floor(randf_range(0,2))
@@ -219,7 +204,7 @@ func _process(delta):
 			sticked_side = false #decide against swapping sides
 			print(\"no swapping aa\")
 			if _MainWindow.position.y == far_y_limit.y and sticked_top == true:
-					animation_selector = 2
+					animation_selector = 1
 		if decide_stick == 1:
 			sticked_side = true
 			sticked_top = false
@@ -232,13 +217,18 @@ func _process(delta):
 			elif _MainWindow.position.x == far_x_limit.x:
 				$AnimatedSprite2D.rotation_degrees = -90
 				$AnimatedSprite2D.flip_h = false
-	#if falling == false and dragging == false:				
+				
+	#if animation_selector ==  0 and sticked_side == true:
+		#$AnimatedSprite2D.animation = \"idle\"
 	if animation_selector == 2 and sticked_side == true and sticked_top == false:
 		velocity.y -= 1
 	if animation_selector == 1 and sticked_side == true and sticked_top == false:
 		velocity.y += 1
+	#if animation_selector ==  0 and sticked_side == true:
+		#$AnimatedSprite2D.animation = \"idle\"
 	if animation_selector == 2 and sticked_top == true and sticked_side == false:
 		velocity.x += 1 
+		
 	if animation_selector == 1 and sticked_top == true and sticked_side == false:
 		velocity.x -= 1
 		
@@ -246,32 +236,6 @@ func _process(delta):
 		velocity = velocity.normalized() * speed
 		$AnimatedSprite2D.play()
 	true_position = _MainWindow.position - DisplayServer.screen_get_position()
-	if Input.is_action_just_pressed(\"click\"):
-		print(\"test\")
-		$AnimatedSprite2D.animation = \"fall\"
-		clear_state()
-	if Input.is_action_pressed(\"click\") and draggable == true:
-		clear_state()
-		dragging = true
-		$AnimatedSprite2D.animation = \"fall\"
-		_MainWindow.position = Vector2(true_position) + get_global_mouse_position()-Vector2(28,18) + Vector2(start_playable_area)
-	if Input.is_action_just_released(\"click\") and draggable == true:
-		sprite_position_y = 48
-		dragging = false
-		falling = true
-		animation_selector = 0
-		clear_state()
-		$AnimatedSprite2D.animation = \"falling\"
-		$AnimatedSprite2D.rotation = 0
-	if falling == true:
-		velocity.y += 1
-		velocity.x = 0
-		clear_state()
-		sprite_position_y = 24
-	if _MainWindow.position.y == pet_play_area_y + sprite_position_y - 7:
-		falling = false
-		velocity.y = 0
-		sprite_position_y = 48
 	position += velocity * delta															#Vector2(player_size * 4)))
 	#print(position)
 	#position = position.clamp(Vector2(player_size/2), Vector2(Vector2(_MainWindow.position) - Vector2(_MainWindow.min_size)))
@@ -289,7 +253,7 @@ func _process(delta):
 		$AnimatedSprite2D.animation = \"walk\"
 		$AnimatedSprite2D.flip_v = false
 		$AnimatedSprite2D.flip_h = velocity.x > 0
-	if velocity.y != 0 and falling == false:
+	if velocity.y != 0:
 		$AnimatedSprite2D.animation = \"walk\"
 		$AnimatedSprite2D.flip_h = velocity.y > 0
 		$AnimatedSprite2D.flip_h = velocity.y < 0
@@ -297,7 +261,7 @@ func _process(delta):
 		$AnimatedSprite2D.animation = \"walk\"
 		$AnimatedSprite2D.flip_h = velocity.y < 0
 		$AnimatedSprite2D.flip_h = velocity.y > 0
-	if velocity.x == 0 and velocity.y == 0 and falling == false:
+	if velocity.x == 0 and velocity.y == 0:
 		$AnimatedSprite2D.animation = \"idle\"
 		
 	#if _MainWindow.position.x ==  1366 and sticked_side == true and swap_cooldown:
@@ -305,6 +269,8 @@ func _process(delta):
 	#	$AnimatedSprite2D.animation = \"up\"
 #	elif velocity.y != 0 and velocity.y > 0:
 #		$AnimatedSprite2D.animation = \"fall\"
+	if velocity.x == 0 and velocity.y == 0:
+		$AnimatedSprite2D.animation = \"idle\"
 	#print(true_position)
 	#print(_MainWindow.position)
 	#print(position)
@@ -321,10 +287,19 @@ func _process(delta):
 	#print(Vector2(player_size/2))
 	#print(Vector2(player_size * 4))
 	#print(Vector2(Vector2(_MainWindow.position) - Vector2(player_size * 4)))
+	if Input.is_action_just_pressed(\"click\"):
+		print(\"test\")
+		offset = get_global_mouse_position() - position
+	if Input.is_action_pressed(\"click\"):
+		dragging = true
+		global_position = get_global_mouse_position() - offset
+		_MainWindow.position = Vector2(_MainWindow.position) + get_global_mouse_position() + Vector2(start_playable_area)
+		print(start_playable_area)
+		print(get_global_mouse_position())
+		
 func _on_timer_timeout() -> void:
-	if falling == false and dragging == false:
-		animation_selector = floor(randf_range(0,3))
-		print(animation_selector)
+	animation_selector = floor(randf_range(0,3))
+	print(animation_selector)
 func get_taskbar_height(): #from https://www.reddit.com/r/godot/comments/s5rjsv/is_there_a_way_to_get_taskbar_height_on_windows/
 	return (total_maximum_window_size.y - DisplayServer.screen_get_usable_rect().size.y - DisplayServer.screen_get_position().y) + player_size.y/1 + player_size.y/3
 func _on_timer_2_timeout() -> void:
@@ -337,30 +312,18 @@ func _on_timer_3_timeout() -> void:
 func set_passthrough(sprite: Vector2):
 	#var texture_center: Vector2 = sprite.texture.get_size() / 2 # Center
 	var texture_corners: PackedVector2Array = [
-		position - Vector2(29,24), # Top left corner
-		position + Vector2(24, 0) - Vector2(0, 24), # Top right corner
-		position + Vector2(24, 0) + Vector2(0, 24), # Bottom right corner
-		position - Vector2(24, 0) + Vector2(0, 24) ] # Bottom left corne
+		position - Vector2(25,25), # Top left corner
+		position + Vector2(24, 0) - Vector2(0, 25), # Top right corner
+		position + Vector2(25, 0) + Vector2(0, 24), # Bottom right corner
+		position - Vector2(25, 0) + Vector2(0, 24) ] # Bottom left corne
 	DisplayServer.window_set_mouse_passthrough(texture_corners)
-
-func clear_state() -> void:
-		#$AnimatedSprite2D.animation = \"idle\"
-		$AnimatedSprite2D.flip_h = false
-		$AnimatedSprite2D.flip_v = false
-		sticked_top = false
-		sticked_side = false
-	
-
-
-func _on_timer_4_timeout() -> void:
-	draggable = true
 "
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_5v4hp"]
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("2_40ims")
+"texture": ExtResource("2_tj1yi")
 }],
 "loop": true,
 "name": &"fall",
@@ -368,10 +331,10 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("2_tj1yi")
+"texture": ExtResource("2_40ims")
 }],
 "loop": true,
-"name": &"falling",
+"name": &"float",
 "speed": 5.0
 }, {
 "frames": [{
@@ -429,7 +392,6 @@ metadata/_edit_group_ = true
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_5v4hp")
 animation = &"idle"
-autoplay = "idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 1.5)
@@ -443,10 +405,6 @@ autostart = true
 
 [node name="Timer3" type="Timer" parent="."]
 
-[node name="Timer4" type="Timer" parent="."]
-wait_time = 5.0
-
 [connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
 [connection signal="timeout" from="Timer2" to="." method="_on_timer_2_timeout"]
 [connection signal="timeout" from="Timer3" to="." method="_on_timer_3_timeout"]
-[connection signal="timeout" from="Timer4" to="." method="_on_timer_4_timeout"]
