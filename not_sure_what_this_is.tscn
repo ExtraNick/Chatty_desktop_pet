@@ -41,7 +41,7 @@ var dragging = false
 var snapshot: Vector2  #used for snapshotting character y position when dragged
 var falling = false
 var draggable = false
-var discover_if_taskbar = 0 
+var discover_if_taskbar = 0
 func _ready():
 	#screen_size = get_viewport_rect().size
 	get_tree().get_root().set_transparent_background(true)
@@ -65,7 +65,7 @@ func _process(delta):
 	#_MainWindow.set_canvas_cull_mask_bit(1, false)
 	#set_passthrough(position)
 	var velocity = Vector2.ZERO # The player's movement vector.
-	if animation_selector ==  0 and sticked_side == false and falling == false:
+	if animation_selector == 0 and sticked_side == false and falling == false:
 		$AnimatedSprite2D.animation = \"idle\"
 	if animation_selector == 2 and sticked_side == false and sticked_top == false:
 		velocity.x += 1
@@ -96,7 +96,7 @@ func _process(delta):
 				animation_selector = 1
 		if decide_stick == 1:
 			sticked_side = true
-			print(\"swapping to y axis \")
+			print(\"swapping to y axis abcde\")
 			velocity.x = 0
 			velocity.y -= 1
 			sprite_position_y = 48
@@ -131,12 +131,12 @@ func _process(delta):
 				
 	#This starts direction for corners
 			#This is for right side corner, ontop of the taskbar
-	if _MainWindow.position.x == far_x_limit.x and sticked_side == true and _MainWindow.position.y > pet_play_area_y and animation_selector == 1 and swap_direction_cooldown == true:
+	if _MainWindow.position.x == far_x_limit.x and sticked_side == true and _MainWindow.position.y > pet_play_area_y and (_MainWindow.position.y != close_y_limit.y) and animation_selector == 1 and swap_direction_cooldown == true:
 		animation_selector = 2
 		$Timer3.start()
 		swap_direction_cooldown = false
 			#This is for left side corner, ontop of taskbar
-	if _MainWindow.position.x == close_x_limit.x and sticked_side == true and _MainWindow.position.y > pet_play_area_y and animation_selector == 1 and swap_direction_cooldown == true:
+	if _MainWindow.position.x == close_x_limit.x and sticked_side == true and _MainWindow.position.y > pet_play_area_y and (_MainWindow.position.y != close_y_limit.y) and animation_selector == 1 and swap_direction_cooldown == true:
 		animation_selector = 2
 		$Timer3.start()
 		swap_direction_cooldown = false
@@ -150,9 +150,10 @@ func _process(delta):
 		animation_selector = 1
 		$Timer3.start()
 		swap_direction_cooldown = false
-	if (_MainWindow.position.y == close_y_limit.y or _MainWindow.position.y == far_y_limit.y) and (_MainWindow.position.x == close_x_limit.x or _MainWindow.position.x == far_x_limit.x) and sticked_side == true and sticked_top == false and swap_direction_cooldown == true:
+	if (_MainWindow.position.y <= close_y_limit.y or _MainWindow.position.y <= far_y_limit.y) and (_MainWindow.position.x == close_x_limit.x or _MainWindow.position.x == far_x_limit.x) and sticked_side == true and sticked_top == false and swap_direction_cooldown == true:
 		animation_selector = 1
 		$Timer3.start()
+		swap_direction_cooldown = false
 	#if _MainWindow.position.y == far_y_limit.y and sticked_side == true and sticked_top == false and swap_direction_cooldown == true:
 		#animation_selector = 1
 		#print(\"The thing you are testing is happening\")
@@ -161,7 +162,8 @@ func _process(delta):
 		
 #if (_MainWindow.position == close_x_limit) and _MainWindow.position.y == close_y_limit.y and sticked_side == true and swap_cooldown == false:		
 #This controls the Top left corner swapping
-	if _MainWindow.position.y == close_y_limit.y and swap_cooldown == false and (sticked_side == true or dragging == true):
+#	if (_MainWindow.position.x == far_x_limit.x or _MainWindow.position.x == close_x_limit.x) and _MainWindow.position.y == 0 and sticked_side == true and swap_cooldown == false and sticked_top == false:
+	if  _MainWindow.position.y == 0  and swap_cooldown == false and sticked_top == false:
 		$Timer2.start()
 		swap_cooldown = true
 		decide_stick = floor(randf_range(0,2))
@@ -170,12 +172,13 @@ func _process(delta):
 		if decide_stick == 0:
 			sticked_side = true #decide against swapping sides
 			print(\"no swapping cccc\")
-			if _MainWindow.position.y == pet_play_area_y:
+			if _MainWindow.position.y == start_playable_area.y:
 					animation_selector = 1
 		if decide_stick == 1:
 			sticked_side = false
 			sticked_top = true
 			print(\"swapping to x axis\")
+			animation_selector = 0
 			velocity.y = 0
 			velocity.x -= 1
 			sprite_position_y = 24
@@ -186,29 +189,29 @@ func _process(delta):
 				$AnimatedSprite2D.flip_h = false
 				
 #This controls the Top right corner swapping
-	if (_MainWindow.position.x == far_x_limit.x) and _MainWindow.position.y == far_y_limit.y and (sticked_side == true) and swap_cooldown == false:
-		$Timer2.start()
-		swap_cooldown = true
-		decide_stick = floor(randf_range(0,2))
-		print(\"Decided:\")
-		print(decide_stick)
-		if decide_stick == 0:
-			sticked_side = true #decide against swapping sides
-			print(\"no swapping dddddd\")
-			if _MainWindow.position.y == pet_play_area_y:
-					animation_selector = 1
-		if decide_stick == 1:
-			sticked_side = false
-			sticked_top = true
-			print(\"swapping to x axis DA\")
-			velocity.y = 0
-			velocity.x += 1
-			sprite_position_y = 24 #its either this one or the top
-			if _MainWindow.position.x == close_x_limit.x and close_y_limit.x:
-				$AnimatedSprite2D.rotation_degrees = 180
-			elif _MainWindow.position.x == far_x_limit.x and far_y_limit.x:
-				$AnimatedSprite2D.rotation_degrees = -180
-				$AnimatedSprite2D.flip_h = false
+	#if (_MainWindow.position.x == far_x_limit.x) and _MainWindow.position.y == far_y_limit.y and (sticked_side == true) and swap_cooldown == false:
+		#$Timer2.start()
+		#swap_cooldown = true
+		#decide_stick = floor(randf_range(0,2))
+		#print(\"Decided:\")
+		#print(decide_stick)
+		#if decide_stick == 0:
+			#sticked_side = true #decide against swapping sides
+			#print(\"no swapping dddddd\")
+			#if _MainWindow.position.y == pet_play_area_y:
+					#animation_selector = 1
+		#if decide_stick == 1:
+			#sticked_side = false
+			#sticked_top = true
+			#print(\"swapping to x axis DA\")
+			#velocity.y = 0
+			#velocity.x += 1
+			#sprite_position_y = 24 #its either this one or the top
+			#if _MainWindow.position.x == close_x_limit.x and close_y_limit.x:
+				#$AnimatedSprite2D.rotation_degrees = 180
+			#elif _MainWindow.position.x == far_x_limit.x and far_y_limit.x:
+				#$AnimatedSprite2D.rotation_degrees = -180
+				#$AnimatedSprite2D.flip_h = false
 
 #Controls swapping top_right from top to side
 	if (_MainWindow.position.x == far_x_limit.x or _MainWindow.position.x == close_x_limit.x) and _MainWindow.position.y == far_y_limit.y and sticked_side == false and swap_cooldown == false:
@@ -226,6 +229,7 @@ func _process(delta):
 			sticked_side = true
 			sticked_top = false
 			print(\"swapping to y axis a\")
+			animation_selector = 0
 			velocity.y = 1
 			velocity.x = 0
 			sprite_position_y = 48
@@ -243,6 +247,8 @@ func _process(delta):
 		velocity.x += 1 
 	if animation_selector == 1 and sticked_top == true and sticked_side == false:
 		velocity.x -= 1
+	if animation_selector == 2 and sticked_side == false and sticked_top == false:
+		velocity.x += 1
 		
 	if velocity.length() > 0:
 		velocity = velocity.normalized() * speed
@@ -260,14 +266,20 @@ func _process(delta):
 	if Input.is_action_just_released(\"click\") and draggable == true:
 		sprite_position_y = 48
 		dragging = false
-		falling = true
-		animation_selector = 0
-		clear_state()
 		$AnimatedSprite2D.animation = \"falling\"
 		$AnimatedSprite2D.rotation = 0
+		animation_selector = 0
+	if sticked_side == false:
+		if sticked_top == false:
+			falling = true
+		else: 
+			falling = false
+	else:
+		falling = false
+
 	if falling == true:
 		velocity.y += 1
-		velocity.x = 0
+		#velocity.x = 0
 		clear_state()
 		sprite_position_y = 24
 		if discover_if_taskbar > pet_play_area_y:
@@ -279,8 +291,8 @@ func _process(delta):
 			elif _MainWindow.position.y == discover_if_taskbar and falling == true: 
 				falling = false
 				velocity.y = 0
-				sprite_position_y = 24
-	position += velocity * delta															#Vector2(player_size * 4)))
+				sprite_position_y = 48
+	position += velocity * delta	
 	#print(position)
 	#position = position.clamp(Vector2(player_size/2), Vector2(Vector2(_MainWindow.position) - Vector2(_MainWindow.min_size)))
 	#position = position.clamp(_MainWindow.position, Vector2(_MainWindow.position) - Vector2(_MainWindow.min_size/3)) 
@@ -329,9 +341,8 @@ func _process(delta):
 	#print(Vector2(player_size/2))
 	#print(Vector2(player_size * 4))
 	#print(Vector2(Vector2(_MainWindow.position) - Vector2(player_size * 4)))
-	print(pet_play_area_y)
-	#print(_MainWindow.position.y)
-	print(get_taskbar_height())
+	#print(velocity.y)
+	#print(animation_selector)
 func _on_timer_timeout() -> void:
 	if falling == false and dragging == false:
 		animation_selector = floor(randf_range(0,3))
