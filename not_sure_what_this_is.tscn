@@ -41,6 +41,7 @@ var dragging = false
 var snapshot: Vector2  #used for snapshotting character y position when dragged
 var falling = false
 var draggable = false
+var discover_if_taskbar = 0 
 func _ready():
 	#screen_size = get_viewport_rect().size
 	get_tree().get_root().set_transparent_background(true)
@@ -55,6 +56,7 @@ func _ready():
 	far_y_limit = Vector2(maximum_window_size.x, close_y_limit.y)
 	
 	pet_play_area_y = total_maximum_window_size.y -  get_taskbar_height()
+	discover_if_taskbar = pet_play_area_y + sprite_position_y - 7
 	pet_play_area_x = total_maximum_window_size.x /2
 	_MainWindow.position.y = pet_play_area_y
 	_MainWindow.position.x = pet_play_area_x
@@ -268,10 +270,16 @@ func _process(delta):
 		velocity.x = 0
 		clear_state()
 		sprite_position_y = 24
-	if _MainWindow.position.y == pet_play_area_y + sprite_position_y - 7:
-		falling = false
-		velocity.y = 0
-		sprite_position_y = 48
+		if discover_if_taskbar > pet_play_area_y:
+			if _MainWindow.position.y == pet_play_area_y and falling == true:
+				falling = false
+				velocity.y = 0
+				sprite_position_y = 48-7
+				position.y = sprite_position_y
+			elif _MainWindow.position.y == discover_if_taskbar and falling == true: 
+				falling = false
+				velocity.y = 0
+				sprite_position_y = 24
 	position += velocity * delta															#Vector2(player_size * 4)))
 	#print(position)
 	#position = position.clamp(Vector2(player_size/2), Vector2(Vector2(_MainWindow.position) - Vector2(_MainWindow.min_size)))
@@ -321,6 +329,9 @@ func _process(delta):
 	#print(Vector2(player_size/2))
 	#print(Vector2(player_size * 4))
 	#print(Vector2(Vector2(_MainWindow.position) - Vector2(player_size * 4)))
+	print(pet_play_area_y)
+	#print(_MainWindow.position.y)
+	print(get_taskbar_height())
 func _on_timer_timeout() -> void:
 	if falling == false and dragging == false:
 		animation_selector = floor(randf_range(0,3))
