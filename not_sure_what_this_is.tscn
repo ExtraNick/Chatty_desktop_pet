@@ -42,6 +42,8 @@ var snapshot: Vector2  #used for snapshotting character y position when dragged
 var falling = false
 var draggable = false
 var discover_if_taskbar = 0
+var falling_gravity = 0.89
+@onready var falling_velocity: Vector2
 func _ready():
 	#screen_size = get_viewport_rect().size
 	get_tree().get_root().set_transparent_background(true)
@@ -63,8 +65,9 @@ func _ready():
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	#_MainWindow.set_canvas_cull_mask_bit(1, false)
-	#set_passthrough(position)
-	var velocity = Vector2.ZERO # The player's movement vector.
+	set_passthrough(position)
+	var velocity = Vector2.ZERO
+	print(falling_velocity.y) # The player's movement vector.
 	if animation_selector == 0 and sticked_side == false and falling == false:
 		$AnimatedSprite2D.animation = \"idle\"
 	if animation_selector == 2 and sticked_side == false and sticked_top == false:
@@ -256,17 +259,17 @@ func _process(delta):
 	true_position = _MainWindow.position - DisplayServer.screen_get_position()
 	if Input.is_action_just_pressed(\"click\"):
 		print(\"test\")
-		$AnimatedSprite2D.animation = \"fall\"
 		clear_state()
 	if Input.is_action_pressed(\"click\") and draggable == true:
 		clear_state()
 		dragging = true
-		$AnimatedSprite2D.animation = \"fall\"
 		_MainWindow.position = Vector2(true_position) + get_global_mouse_position()-Vector2(28,18) + Vector2(start_playable_area)
 	if Input.is_action_just_released(\"click\") and draggable == true:
 		sprite_position_y = 48
 		dragging = false
-		$AnimatedSprite2D.animation = \"falling\"
+		falling_velocity.y = velocity.y
+		print(falling_velocity.y)
+		#$AnimatedSprite2D.animation = \"falling\"
 		$AnimatedSprite2D.rotation = 0
 		animation_selector = 0
 	if sticked_side == false:
@@ -277,11 +280,15 @@ func _process(delta):
 	else:
 		falling = false
 
-	if falling == true:
+	if falling == true and dragging == false:
+		var temporary_velocity = velocity.y + 1
+		falling_velocity.y = (falling_velocity.y * falling_gravity) + (1 *falling_gravity)	#velocity.x = 0
 		velocity.y += 1
-		#velocity.x = 0
 		clear_state()
 		sprite_position_y = 24
+		print(_MainWindow.position.y)
+		print(pet_play_area_y)
+		print(velocity.y)
 		if discover_if_taskbar > pet_play_area_y:
 			if _MainWindow.position.y == pet_play_area_y and falling == true:
 				falling = false
@@ -319,6 +326,11 @@ func _process(delta):
 		$AnimatedSprite2D.flip_h = velocity.y > 0
 	if velocity.x == 0 and velocity.y == 0 and falling == false:
 		$AnimatedSprite2D.animation = \"idle\"
+	if velocity.y > 0  and falling == true and dragging == false:
+		$AnimatedSprite2D.animation = \"falling\"
+	if dragging == true:
+		$AnimatedSprite2D.animation = \"fall\"
+		
 		
 	#if _MainWindow.position.x ==  1366 and sticked_side == true and swap_cooldown:
 	#elif velocity.y != 0 and velocity.y < 0:
@@ -343,6 +355,7 @@ func _process(delta):
 	#print(Vector2(Vector2(_MainWindow.position) - Vector2(player_size * 4)))
 	#print(velocity.y)
 	#print(animation_selector)
+	
 func _on_timer_timeout() -> void:
 	if falling == false and dragging == false:
 		animation_selector = floor(randf_range(0,3))
@@ -450,7 +463,7 @@ metadata/_edit_group_ = true
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_5v4hp")
-animation = &"idle"
+animation = &"falling"
 autoplay = "idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
