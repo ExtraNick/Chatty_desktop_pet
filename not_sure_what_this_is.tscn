@@ -198,7 +198,6 @@ func _process(delta):
 			print(\"no swapping cccc\")
 			if _MainWindow.position.y == start_playable_area.y:
 					animation_selector = 1
-					$AnimatedSprite2D.rotation = 90
 		if decide_stick == 1:
 			sticked_side = false
 			sticked_top = true
@@ -505,9 +504,6 @@ func _process(delta):
 	#print(\"sticked side:\",sticked_side)
 	#print(\"falling:\",falling)
 	#print(\"dragging:\",dragging)
-	print($AnimatedSprite2D.rotation_degrees)
-	print($Window/Sprite2D.rotation_degrees)
-	print(\"Heart_rotating\", heart_rotate)
 func _on_timer_timeout() -> void:
 	if falling == false and dragging == false and heart_visible == false:
 		animation_selector = floor(randf_range(0,3))
