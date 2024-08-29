@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://c0ci8rnlg2lwe"]
+[gd_scene load_steps=11 format=3 uid="uid://c0ci8rnlg2lwe"]
 
 [ext_resource type="Texture2D" uid="uid://bx0fsn3w6t35a" path="res://demonite_idle1.png" id="1_x3e4l"]
 [ext_resource type="Texture2D" uid="uid://lkowl4pkn0b1" path="res://demonite_float_correct.png" id="2_40ims"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://cu6nb18u857r5" path="res://demonite_idle2.png" id="3_63mtt"]
 [ext_resource type="Texture2D" uid="uid://d1bbwhcspj627" path="res://demonite_moving_right1.png" id="4_f1ch0"]
 [ext_resource type="Texture2D" uid="uid://bjdfmky03voyc" path="res://demonite_moving_right2.png" id="5_y5b51"]
+[ext_resource type="Texture2D" uid="uid://df2g6eyrrn4i4" path="res://heart_heart.png" id="7_ucvvb"]
 
 [sub_resource type="GDScript" id="GDScript_prqq1"]
 resource_name = "player.gd"
@@ -20,6 +21,7 @@ var last_position = _MainWindow
 var screen_size # Size of the game window
 var sticked_side = false
 var sticked_top  = false
+var sticked_bottom = false
 # Called when the node enters the scene tree for the first time.
 var maximum_window_size = DisplayServer.screen_get_size() #Last pixel at the bottom right
 var true_position #mainly for debugging then later on for mouse position
@@ -43,10 +45,19 @@ var falling = false
 var draggable = false
 var discover_if_taskbar = 0
 var falling_gravity = 0.89
+var x_speed_array = []
+var y_speed_array = []
+var flinging = false
+var flinging_velocity_x = 0
+var flinging_velocity_y = 0
+var dragged_long = false
+var heart_visible = false
+var heart_rotate = false
 @onready var falling_velocity: Vector2
 func _ready():
 	#screen_size = get_viewport_rect().size
 	get_tree().get_root().set_transparent_background(true)
+	$Window/Sprite2D.modulate.a8 = 100
 	$Timer4.start()
 	total_maximum_window_size = start_playable_area + maximum_window_size #The sum of starting pixel and ending pixel
 	
@@ -62,12 +73,12 @@ func _ready():
 	pet_play_area_x = total_maximum_window_size.x /2
 	_MainWindow.position.y = pet_play_area_y
 	_MainWindow.position.x = pet_play_area_x
+	sticked_bottom = true
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	#_MainWindow.set_canvas_cull_mask_bit(1, false)
 	set_passthrough(position)
-	var velocity = Vector2.ZERO
-	print(falling_velocity.y) # The player's movement vector.
+	var velocity = Vector2.ZERO # The player's movement vector.
 	if animation_selector == 0 and sticked_side == false and falling == false:
 		$AnimatedSprite2D.animation = \"idle\"
 	if animation_selector == 2 and sticked_side == false and sticked_top == false:
@@ -99,14 +110,19 @@ func _process(delta):
 				animation_selector = 1
 		if decide_stick == 1:
 			sticked_side = true
+			sticked_bottom = false
+			dragging = false
 			print(\"swapping to y axis abcde\")
+			animation_selector = 0
 			velocity.x = 0
 			velocity.y -= 1
 			sprite_position_y = 48
 			if _MainWindow.position.x == close_x_limit.x:
 				$AnimatedSprite2D.rotation_degrees = 90
+				$Window/Sprite2D.rotation = $AnimatedSprite2D.rotation
 			elif _MainWindow.position.x == far_x_limit.x:
 				$AnimatedSprite2D.rotation_degrees = -90
+				$Window/Sprite2D.rotation = $AnimatedSprite2D.rotation
 				$AnimatedSprite2D.flip_h = true
 # this controls side swapping to bottom
 	if (_MainWindow.position.y == pet_play_area_y) and sticked_side == true and swap_cooldown == false:
@@ -122,14 +138,19 @@ func _process(delta):
 					animation_selector = 2
 		if decide_stick == 1:
 			sticked_side = false
+			sticked_bottom = true
+			sticked_top = false
+			dragging = false
 			print(\"swapping to x axis\")
 			velocity.y = 0
 			velocity.x -= 1
 			sprite_position_y = 48
 			if _MainWindow.position.x == close_x_limit.x:
 				$AnimatedSprite2D.rotation_degrees = 0
+				$Window/Sprite2D.rotation = $AnimatedSprite2D.rotation
 			elif _MainWindow.position.x == far_x_limit.x:
 				$AnimatedSprite2D.rotation_degrees = 0
+				$Window/Sprite2D.rotation = $AnimatedSprite2D.rotation
 				$AnimatedSprite2D.flip_h = true
 				
 	#This starts direction for corners
@@ -172,14 +193,17 @@ func _process(delta):
 		decide_stick = floor(randf_range(0,2))
 		print(\"Decided:\")
 		print(decide_stick)
-		if decide_stick == 0:
+		if decide_stick == 0 and flinging == false:
 			sticked_side = true #decide against swapping sides
 			print(\"no swapping cccc\")
 			if _MainWindow.position.y == start_playable_area.y:
 					animation_selector = 1
+					$AnimatedSprite2D.rotation = 90
 		if decide_stick == 1:
 			sticked_side = false
 			sticked_top = true
+			sticked_bottom = false
+			dragging = false
 			print(\"swapping to x axis\")
 			animation_selector = 0
 			velocity.y = 0
@@ -187,8 +211,10 @@ func _process(delta):
 			sprite_position_y = 24
 			if _MainWindow.position.y == close_y_limit.y:
 				$AnimatedSprite2D.rotation_degrees = 180
+				$Window/Sprite2D.rotation = $AnimatedSprite2D.rotation
 			elif _MainWindow.position.y == far_y_limit.y:
 				$AnimatedSprite2D.rotation_degrees = -180
+				$Window/Sprite2D.rotation = $AnimatedSprite2D.rotation
 				$AnimatedSprite2D.flip_h = false
 				
 #This controls the Top right corner swapping
@@ -231,6 +257,7 @@ func _process(delta):
 		if decide_stick == 1:
 			sticked_side = true
 			sticked_top = false
+			dragging = false
 			print(\"swapping to y axis a\")
 			animation_selector = 0
 			velocity.y = 1
@@ -238,8 +265,10 @@ func _process(delta):
 			sprite_position_y = 48
 			if _MainWindow.position.x == close_x_limit.x:
 				$AnimatedSprite2D.rotation_degrees = 90
+				$Window/Sprite2D.rotation = $AnimatedSprite2D.rotation
 			elif _MainWindow.position.x == far_x_limit.x:
 				$AnimatedSprite2D.rotation_degrees = -90
+				$Window/Sprite2D.rotation = $AnimatedSprite2D.rotation
 				$AnimatedSprite2D.flip_h = false
 	#if falling == false and dragging == false:				
 	if animation_selector == 2 and sticked_side == true and sticked_top == false:
@@ -252,52 +281,156 @@ func _process(delta):
 		velocity.x -= 1
 	if animation_selector == 2 and sticked_side == false and sticked_top == false:
 		velocity.x += 1
+	
 		
 	if velocity.length() > 0:
 		velocity = velocity.normalized() * speed
 		$AnimatedSprite2D.play()
 	true_position = _MainWindow.position - DisplayServer.screen_get_position()
-	if Input.is_action_just_pressed(\"click\"):
+	if heart_visible == true:
+		$Window/Sprite2D.modulate.a8 = $Window/Sprite2D.modulate.a8 + 5
+		#heart while on bottom
+		if $Window/Sprite2D.rotation_degrees == 10:
+			heart_rotate = true
+		if $Window/Sprite2D.rotation_degrees == -10:
+			heart_rotate = false
+		if $Window/Sprite2D.rotation_degrees <= 10 and heart_rotate == false:
+			$Window/Sprite2D.rotation_degrees = $Window/Sprite2D.rotation_degrees + 1
+		if $Window/Sprite2D.rotation_degrees >= -10 and heart_rotate == true:
+			$Window/Sprite2D.rotation_degrees = $Window/Sprite2D.rotation_degrees - 1
+			
+		#heart while on left side
+		if $Window/Sprite2D.rotation_degrees == 100 and sticked_side == true:
+			heart_rotate = true
+		if $Window/Sprite2D.rotation_degrees <= 80 and $Window/Sprite2D.rotation_degrees > 0 and sticked_side == true and heart_rotate == true:
+			heart_rotate = false
+		if $Window/Sprite2D.rotation_degrees <= 100 and heart_rotate == false:
+			$Window/Sprite2D.rotation_degrees = $Window/Sprite2D.rotation_degrees + 1
+		if $Window/Sprite2D.rotation_degrees >= 80 and heart_rotate == true:
+			$Window/Sprite2D.rotation_degrees = $Window/Sprite2D.rotation_degrees - 1	
+			
+		#heart while on right side
+		if $Window/Sprite2D.rotation_degrees >= -80 and $Window/Sprite2D.rotation_degrees < 0 and sticked_side == true:
+			heart_rotate = true
+		if $Window/Sprite2D.rotation_degrees == -100:
+			heart_rotate = false
+		if $Window/Sprite2D.rotation_degrees < -80 and heart_rotate == false:
+			$Window/Sprite2D.rotation_degrees = $Window/Sprite2D.rotation_degrees + 1
+		if $Window/Sprite2D.rotation_degrees > -100 and heart_rotate == true:
+			$Window/Sprite2D.rotation_degrees = $Window/Sprite2D.rotation_degrees - 1
+		
+		#heart while on top
+		if $Window/Sprite2D.rotation_degrees == 190:
+			heart_rotate = true
+		if $Window/Sprite2D.rotation_degrees == 170:
+			heart_rotate = false
+		if $Window/Sprite2D.rotation_degrees <= 190 and heart_rotate == false and sticked_top == true:
+			$Window/Sprite2D.rotation_degrees = $Window/Sprite2D.rotation_degrees + 1
+		if $Window/Sprite2D.rotation_degrees >= 170 and heart_rotate == true and sticked_top == true:
+			$Window/Sprite2D.rotation_degrees = $Window/Sprite2D.rotation_degrees - 1
+	if heart_visible == false:
+		$Window/Sprite2D.rotation_degrees = $AnimatedSprite2D.rotation_degrees
+	if Input.is_action_just_pressed(\"right_click\") and dragging == false and flinging == false and falling == false and heart_visible == false:
+		$Window.show()
+		$Timer6.start()
+		heart_visible = true
+		animation_selector = 0
+		
+	if Input.is_action_just_pressed(\"click\") and draggable == true:
 		print(\"test\")
-		clear_state()
-	if Input.is_action_pressed(\"click\") and draggable == true:
-		clear_state()
 		dragging = true
+		flinging = false
+		$Timer5.start()
+		clear_state()
+	if Input.is_action_pressed(\"click\") and draggable == true and dragging == true and flinging == false:
+		append_array_x(_MainWindow.position.x)
+		append_array_y(_MainWindow.position.y)
+		clear_state()
+		flinging = false
 		_MainWindow.position = Vector2(true_position) + get_global_mouse_position()-Vector2(28,18) + Vector2(start_playable_area)
-	if Input.is_action_just_released(\"click\") and draggable == true:
+		
+	if Input.is_action_just_released(\"click\") and draggable == true and dragging == true:
 		sprite_position_y = 48
 		dragging = false
+		flinging = false
 		falling_velocity.y = velocity.y
-		print(falling_velocity.y)
 		#$AnimatedSprite2D.animation = \"falling\"
 		$AnimatedSprite2D.rotation = 0
 		animation_selector = 0
+		if (calculate_x_acceleration() != 0 or calculate_y_acceleration() != 0) and (x_speed_array.size() == 10 or y_speed_array.size() == 10) and flinging == false and dragged_long == true:
+			dragged_long = false
+			if calculate_x_acceleration() != 0:
+				flinging_velocity_x = calculate_x_acceleration()
+			if calculate_y_acceleration() != 0:
+				flinging_velocity_y = calculate_y_acceleration() 
+			flinging = true
 	if sticked_side == false:
 		if sticked_top == false:
-			falling = true
+			if sticked_bottom == false:
+				falling = true
 		else: 
 			falling = false
 	else:
 		falling = false
-
-	if falling == true and dragging == false:
-		var temporary_velocity = velocity.y + 1
+	if flinging == true:
+		x_speed_array.clear()
+		y_speed_array.clear()
+		if flinging_velocity_x > 0:	
+			flinging_velocity_x = floor(calculate_x_velocity())
+			velocity.x = flinging_velocity_x
+			if flinging_velocity_x/2  < falling_velocity.y/2:
+				flinging_velocity_x = 0 		
+		if flinging_velocity_x < 0:
+			flinging_velocity_x = round(calculate_x_velocity())
+			velocity.x = flinging_velocity_x
+			if flinging_velocity_x/2  > -8/2:
+				flinging_velocity_x = 0
+		if flinging_velocity_y > 0:
+			falling_velocity.y = round(calculate_y_velocity())
+			flinging_velocity_y = flinging_velocity_y - falling_velocity.y
+			velocity.y = floor(flinging_velocity_y)
+			if flinging_velocity_y < falling_velocity.y:
+				flinging_velocity_y = 0
+		if flinging_velocity_y < 0:
+			falling_velocity.y = round(calculate_y_velocity() * 0.85)
+			flinging_velocity_y = flinging_velocity_y + falling_velocity.y
+			velocity.y = floor(flinging_velocity_y)
+			if flinging_velocity_y > -falling_velocity.y:
+				flinging_velocity_y = 0
+	
+	if (sticked_top == true or sticked_bottom == true or sticked_side == true) and flinging == true:
+		flinging = false
+		flinging_velocity_x = 0
+		velocity.x = 0
+		flinging_velocity_y = 0
+		velocity.y = 0
+	if flinging_velocity_x == 0 and flinging_velocity_y == 0 and flinging == true:
+		flinging = false
+		flinging_velocity_x = 0
+		velocity.x = 0
+		flinging_velocity_y = 0
+		velocity.y = 0
+		falling = true
+	if falling == true and dragging == false and flinging == false:
+		#var temporary_velocity = velocity.y + 1
 		falling_velocity.y = (falling_velocity.y * falling_gravity) + (1 *falling_gravity)	#velocity.x = 0
-		velocity.y += 1
-		clear_state()
+		#falling_velocity.y = (3 * _MainWindow.position.y)/pet_play_area_y*pet_play_area_y
+		velocity.y = round(falling_velocity.y)
+		
 		sprite_position_y = 24
-		print(_MainWindow.position.y)
-		print(pet_play_area_y)
-		print(velocity.y)
 		if discover_if_taskbar > pet_play_area_y:
 			if _MainWindow.position.y == pet_play_area_y and falling == true:
 				falling = false
+				sticked_bottom = true
+				$AnimatedSprite2D.rotation =0
 				velocity.y = 0
 				sprite_position_y = 48-7
 				position.y = sprite_position_y
 			elif _MainWindow.position.y == discover_if_taskbar and falling == true: 
 				falling = false
+				sticked_bottom = true
 				velocity.y = 0
+				$AnimatedSprite2D.rotation = 0
 				sprite_position_y = 48
 	position += velocity * delta	
 	#print(position)
@@ -307,7 +440,15 @@ func _process(delta):
 	last_position = _MainWindow.position
 	_MainWindow.position = last_position + Vector2i((velocity*speed)*1.)
 	_MainWindow.position = _MainWindow.position.clamp(close_x_limit , far_x_limit)
-
+	if heart_visible == false:
+		$Window.position = _MainWindow.position
+	if discover_if_taskbar > pet_play_area_y:
+		if _MainWindow.position.y > pet_play_area_y:
+			_MainWindow.position.y = pet_play_area_y
+	elif _MainWindow.position.y == discover_if_taskbar: 
+		if _MainWindow.positiong.y > discover_if_taskbar:
+			_MainWindow.position.y = discover_if_taskbar 
+			clear_state()
 	if velocity.x != 0 and sticked_top == false:
 		$AnimatedSprite2D.animation = \"walk\"
 		$AnimatedSprite2D.flip_v = false
@@ -330,6 +471,8 @@ func _process(delta):
 		$AnimatedSprite2D.animation = \"falling\"
 	if dragging == true:
 		$AnimatedSprite2D.animation = \"fall\"
+	if heart_visible == true:
+		$AnimatedSprite2D.animation = \"falling\"
 		
 		
 	#if _MainWindow.position.x ==  1366 and sticked_side == true and swap_cooldown:
@@ -355,9 +498,18 @@ func _process(delta):
 	#print(Vector2(Vector2(_MainWindow.position) - Vector2(player_size * 4)))
 	#print(velocity.y)
 	#print(animation_selector)
-	
+	#print(flinging_velocity_x)
+	#print(flinging_velocity_y)
+	#print(\"sticked_botom\",sticked_bottom)
+	#print(\"sticked top:\",sticked_top)
+	#print(\"sticked side:\",sticked_side)
+	#print(\"falling:\",falling)
+	#print(\"dragging:\",dragging)
+	print($AnimatedSprite2D.rotation_degrees)
+	print($Window/Sprite2D.rotation_degrees)
+	print(\"Heart_rotating\", heart_rotate)
 func _on_timer_timeout() -> void:
-	if falling == false and dragging == false:
+	if falling == false and dragging == false and heart_visible == false:
 		animation_selector = floor(randf_range(0,3))
 		print(animation_selector)
 func get_taskbar_height(): #from https://www.reddit.com/r/godot/comments/s5rjsv/is_there_a_way_to_get_taskbar_height_on_windows/
@@ -384,11 +536,44 @@ func clear_state() -> void:
 		$AnimatedSprite2D.flip_v = false
 		sticked_top = false
 		sticked_side = false
+		sticked_bottom = false
+		flinging = false
 	
 
 
 func _on_timer_4_timeout() -> void:
 	draggable = true
+
+func append_array_x(read_x: int):
+	x_speed_array.append(read_x)
+	if x_speed_array.size() == 11:
+		x_speed_array.pop_front()
+func append_array_y(read_y: int):
+	y_speed_array.append(read_y)
+	if y_speed_array.size() == 11:
+		y_speed_array.pop_front()
+func calculate_x_acceleration():
+	if x_speed_array.size() >= 10:
+		return (x_speed_array[9] - x_speed_array[0]) / 10
+func calculate_y_acceleration():
+	if y_speed_array.size() >= 10:
+		return (y_speed_array[9] - y_speed_array[0]) /10
+func calculate_x_velocity():
+	return flinging_velocity_x * 0.90
+func calculate_y_velocity():
+	return (falling_velocity.y * falling_gravity) + (1 *falling_gravity)
+
+
+func _on_timer_5_timeout() -> void:
+	dragged_long = true
+
+
+func _on_timer_6_timeout() -> void:
+	heart_visible = false
+	$Window.hide()
+	$Window/Sprite2D.modulate.a8 = 100
+	heart_rotate = false
+	$Windo
 "
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_5v4hp"]
@@ -479,9 +664,33 @@ autostart = true
 [node name="Timer3" type="Timer" parent="."]
 
 [node name="Timer4" type="Timer" parent="."]
-wait_time = 5.0
+
+[node name="Timer5" type="Timer" parent="."]
+
+[node name="Timer6" type="Timer" parent="."]
+wait_time = 2.0
+
+[node name="Window" type="Window" parent="."]
+transparent_bg = true
+size = Vector2i(48, 40)
+visible = false
+transient = true
+transient_to_focused = true
+exclusive = true
+unresizable = true
+borderless = true
+always_on_top = true
+transparent = true
+unfocusable = true
+popup_window = true
+
+[node name="Sprite2D" type="Sprite2D" parent="Window"]
+position = Vector2(24, 24)
+texture = ExtResource("7_ucvvb")
 
 [connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
 [connection signal="timeout" from="Timer2" to="." method="_on_timer_2_timeout"]
 [connection signal="timeout" from="Timer3" to="." method="_on_timer_3_timeout"]
 [connection signal="timeout" from="Timer4" to="." method="_on_timer_4_timeout"]
+[connection signal="timeout" from="Timer5" to="." method="_on_timer_5_timeout"]
+[connection signal="timeout" from="Timer6" to="." method="_on_timer_6_timeout"]
