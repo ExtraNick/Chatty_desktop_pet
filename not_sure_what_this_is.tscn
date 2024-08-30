@@ -16,14 +16,14 @@ script/source = "extends Area2D
 @export var player_size: Vector2i = Vector2i(48	, 48)
 @onready var _MainWindow: Window = get_window()
 @onready var animation_selector = 0
-var start_playable_area = DisplayServer.screen_get_position() #First pixel at the top left
+var start_playable_area = DisplayServer.screen_get_position(DisplayServer.get_keyboard_focus_screen()) #First pixel at the top left
 var last_position = _MainWindow
 var screen_size # Size of the game window
 var sticked_side = false
 var sticked_top  = false
 var sticked_bottom = false
 # Called when the node enters the scene tree for the first time.
-var maximum_window_size = DisplayServer.screen_get_size() #Last pixel at the bottom right
+var maximum_window_size = DisplayServer.screen_get_size(DisplayServer.get_keyboard_focus_screen()) #Last pixel at the bottom right
 var true_position #mainly for debugging then later on for mouse position
 var total_maximum_window_size #also mainly for debugging
 var decide_stick #pet decides if he wants to stick or not
@@ -55,6 +55,8 @@ var heart_visible = false
 var heart_rotate = false
 @onready var falling_velocity: Vector2
 func _ready():
+	DisplayServer.window_set_current_screen(DisplayServer.get_keyboard_focus_screen())
+	_MainWindow.current_screen = DisplayServer.get_keyboard_focus_screen()
 	#screen_size = get_viewport_rect().size
 	get_tree().get_root().set_transparent_background(true)
 	$Window/Sprite2D.modulate.a8 = 100
@@ -67,7 +69,7 @@ func _ready():
 	
 	close_y_limit = start_playable_area #just for easier naming
 	far_y_limit = Vector2(maximum_window_size.x, close_y_limit.y)
-	
+
 	pet_play_area_y = total_maximum_window_size.y -  get_taskbar_height()
 	discover_if_taskbar = pet_play_area_y + sprite_position_y - 7
 	pet_play_area_x = total_maximum_window_size.x /2
@@ -125,7 +127,7 @@ func _process(delta):
 				$Window/Sprite2D.rotation = $AnimatedSprite2D.rotation
 				$AnimatedSprite2D.flip_h = true
 # this controls side swapping to bottom
-	if (_MainWindow.position.y == pet_play_area_y) and sticked_side == true and swap_cooldown == false:
+	if (_MainWindow.position.y >= pet_play_area_y) and sticked_side == true and swap_cooldown == false:
 		$Timer2.start()
 		swap_cooldown = true
 		decide_stick = floor(randf_range(0,2))
@@ -144,7 +146,12 @@ func _process(delta):
 			print(\"swapping to x axis\")
 			velocity.y = 0
 			velocity.x -= 1
-			sprite_position_y = 48
+			sprite_position_y = 48 - 7
+			if discover_if_taskbar > pet_play_area_y:
+					position.y = sprite_position_y + 7
+			else:
+					position.y = sprite_position_y 
+			position.y = sprite_position_y
 			if _MainWindow.position.x == close_x_limit.x:
 				$AnimatedSprite2D.rotation_degrees = 0
 				$Window/Sprite2D.rotation = $AnimatedSprite2D.rotation
@@ -285,7 +292,7 @@ func _process(delta):
 	if velocity.length() > 0:
 		velocity = velocity.normalized() * speed
 		$AnimatedSprite2D.play()
-	true_position = _MainWindow.position - DisplayServer.screen_get_position()
+	true_position = _MainWindow.position - start_playable_area
 	if heart_visible == true:
 		$Window/Sprite2D.modulate.a8 = $Window/Sprite2D.modulate.a8 + 5
 		#heart while on bottom
@@ -480,17 +487,12 @@ func _process(delta):
 #	elif velocity.y != 0 and velocity.y > 0:
 #		$AnimatedSprite2D.animation = \"fall\"
 	#print(true_position)
-	#print(_MainWindow.position)
 	#print(position)
 	#print(_MainWindow.position / Vector2i(position))
 	#print(pet_play_area_y)
 	#print(pet_play_area_y)
 	#print(player_size.y/3)
-	#print(total_maximum_window_size)
-	#print(DisplayServer.screen_get_usable_rect())
-	#print(DisplayServer.screen_get_size())
-	#print(DisplayServer.screen_get_position())
-	#print(far_y_limit)
+
 	#print(close_x_limit)
 	#print(Vector2(player_size/2))
 	#print(Vector2(player_size * 4))
@@ -504,6 +506,8 @@ func _process(delta):
 	#print(\"sticked side:\",sticked_side)
 	#print(\"falling:\",falling)
 	#print(\"dragging:\",dragging)
+	print(_MainWindow.position)
+	print(sprite_position_y)
 func _on_timer_timeout() -> void:
 	if falling == false and dragging == false and heart_visible == false:
 		animation_selector = floor(randf_range(0,3))
