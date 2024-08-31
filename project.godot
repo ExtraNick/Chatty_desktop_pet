@@ -10,11 +10,11 @@ config_version=5
 
 [application]
 
-config/name="desktop_pet"
-run/main_scene="res://not_sure_what_this_is.tscn"
+config/name="Chatty-Desktop-Pet"
+run/main_scene="res://Main.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 run/max_fps=120
-config/icon="res://icon.svg"
+config/icon="res://images/demonite_idle1.png"
 
 [display]
 
