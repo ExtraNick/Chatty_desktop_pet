@@ -65,7 +65,7 @@ func _ready():
 	
 	#far_x_limit = total_maximum_window_size - (Vector2i(player_size)/5)  - ((Vector2i(player_size)+Vector2i(player_size)/1))
 	far_x_limit = total_maximum_window_size - player_size
-	close_x_limit = (DisplayServer.screen_get_position())
+	close_x_limit = (DisplayServer.screen_get_position(DisplayServer.get_keyboard_focus_screen()))
 	
 	close_y_limit = start_playable_area #just for easier naming
 	far_y_limit = Vector2(maximum_window_size.x, close_y_limit.y)
@@ -506,14 +506,12 @@ func _process(delta):
 	#print(\"sticked side:\",sticked_side)
 	#print(\"falling:\",falling)
 	#print(\"dragging:\",dragging)
-	print(_MainWindow.position)
-	print(sprite_position_y)
 func _on_timer_timeout() -> void:
 	if falling == false and dragging == false and heart_visible == false:
 		animation_selector = floor(randf_range(0,3))
 		print(animation_selector)
 func get_taskbar_height(): #from https://www.reddit.com/r/godot/comments/s5rjsv/is_there_a_way_to_get_taskbar_height_on_windows/
-	return (total_maximum_window_size.y - DisplayServer.screen_get_usable_rect().size.y - DisplayServer.screen_get_position().y) + player_size.y/1 + player_size.y/3
+	return (total_maximum_window_size.y - DisplayServer.screen_get_usable_rect(DisplayServer.get_keyboard_focus_screen()).size.y - DisplayServer.screen_get_position(DisplayServer.get_keyboard_focus_screen()).y) + player_size.y/1 + player_size.y/3
 func _on_timer_2_timeout() -> void:
 	swap_cooldown = false
 	pass # Replace with function body.
