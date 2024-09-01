@@ -81,7 +81,7 @@ If the pet does fall through the pet play area, it's position and the Window's i
 
 ### Miscellaneous
 The pet cannot swap screens. If you wish to change the pet's active screen, you have to close the application and re-open it in the desired screen.<br>
-The pet's active screen, is based off of the keyboard's active screen at the time the application is started. Note: window's taskbar keyboard activity seems to default to the primary screen. <br>
+The pet's active screen is based off of the keyboard's active screen at the time the application is started. Note: window's taskbar keyboard activity seems to default to the primary screen. <br>
 The Window's click through functionality was possible thanks to [This tutorial made by chewedgum](https://medium.com/@chewedgumah/godot-4-partially-clickthrough-window-with-transparent-background-3de637cdf95b) <br>
 
 
