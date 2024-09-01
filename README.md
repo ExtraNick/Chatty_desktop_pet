@@ -59,7 +59,7 @@ It receives all rotation degrees updates that the main sprite receives, and if t
 </p>
 
 ### Grabbing, flinging and gravity
-The last Functionatility, is the grabbing and flinging mechanic. <br>
+The last Functionatility is the grabbing and flinging mechanic. <br>
 If ther left clicks (from now on i will refer to this as simply clicking) the pet, the pet enters a grabbed state: <br>
 <p align="center">
   <img width="48" src="https://github.com/user-attachments/assets/662378b5-bbfb-4d5b-b57f-8468dcc8981b" alt="pet_float">
