@@ -85,9 +85,10 @@ The pet's active screen is based off of the keyboard's active screen at the time
 The Window's click through functionality was possible thanks to [This tutorial made by chewedgum](https://medium.com/@chewedgumah/godot-4-partially-clickthrough-window-with-transparent-background-3de637cdf95b) <br>
 
 
+## Additional information
+To close the application, hover over the window in the taskbar and simply click the X. Or, just use task manager. <br>
+This applications use your GPU for the most part, so while you *can* have multiple pets at once, watch your VRAM, because if you run out, your PC *might* crash. My PC for example, doesn't like more than 8 Pets running at the same with, and i have 4GB of VRAM. <br>
+
+
 ## Known Issues
 if you have a top and a bottom screen set in Windows 11 settings, the pet will be unable to stick to the top of the bottom screen - This was untested in Linux, and in previous versions of Windows. <br>
-
-## Additional information
-To close the application, hover over the window in the taskbar and simply click the X. Or, just use task manager.
-
