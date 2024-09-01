@@ -88,5 +88,6 @@ The Window's click through functionality was possible thanks to [This tutorial m
 ## Known Issues
 if you have a top and a bottom screen set in Windows 11 settings, the pet will be unable to stick to the top of the bottom screen - This was untested in Linux, and in previous versions of Windows. <br>
 
-
+## Additional information
+To close the application, hover over the window in the taskbar and simply click the X. Or, just use task manager.
 
