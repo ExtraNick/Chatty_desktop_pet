@@ -11,7 +11,10 @@ Additionally, the pet can be right-clicked to be petted.
 ### Window
 Godot's Window class has many properties that are vital to this desktop pet, if you've seen [This tutorial by geegaz](https://github.com/geegaz/Multiple-Windows-tutorial), then you can probably guess how everything works.
 
-First, a Window is created that matches the desktop pet's Height and Width. <br> ![Window_container](https://github.com/user-attachments/assets/0f539f44-e875-41e6-9d00-bc0e1ef1821f) <br>
+First, a Window is created that matches the desktop pet's Height and Width. <br>
+<p align="center">
+  <img width="200" src="https://github.com/user-attachments/assets/0f539f44-e875-41e6-9d00-bc0e1ef1821f" alt="Window_size">
+</p>
 You can notice the window is actually larger than the pet's sprite, but that's because Windows 11 has minimum window size. <br>
 
 ### Pet's play area
@@ -24,37 +27,43 @@ All of the pet's animations are based off of speed: <br>
 - if the pet's speed is 0, it plays the idle animation
 - if the pet's velocity is positive relative to its current axis, it plays a walk animation.
 - if the pet's velocity is negative relative to it's current axis, it plays a flipped walk animation. <br>
-
-![pet_idle](https://github.com/user-attachments/assets/b7a7b506-0a92-4ae4-a64e-bec12aab9bd8) <br>
-
+<p align="center">
+    <img width="48" src="https://github.com/user-attachments/assets/b7a7b506-0a92-4ae4-a64e-bec12aab9bd8" alt="pet_idle">
+</p>
 
 ### Pet movement
 The pet moves based off of a 5 seconds Timer, which procs an RNG function to decide the pet's next action. It will decide between staying still, moving to the right or to the left based on the current axis it's attached on. <br>
-![pet_move](https://github.com/user-attachments/assets/566f5e44-ee04-4416-9173-e2f156bdb2d4) <br>
+<p align="center">
+  <img width="48" src="https://github.com/user-attachments/assets/566f5e44-ee04-4416-9173-e2f156bdb2d4" alt="pet_walk">
+</p>
 For each pet movement, the Window performs the exact same movement, updateing it's positon based on the pet's position, effectively following it around the screen area.
 
 ### Side and top swapping
 Once the Window meets either side of the screen, the pet decides between sticking to that window side's Y coordinates or not:<br>
 - If the pet decides against sticking, it will start a timer that prevents it against swapping window sides, and moves in the opposite direction. <br>
 - If the pet decides to sticking to that side of the screen, its X velocity is nullified, It's Y velocity starts receiving the movement choices and the sprite rotates 90 degrees if on the left side, or -90 degrees (270 degrees) if on the right side. <br>
-
-![pet_walk_wall](https://github.com/user-attachments/assets/b73424da-1335-4beb-b555-78635adc0d46) <br>
-
+<p align="center">
+  <img width="48" src="https://github.com/user-attachments/assets/b73424da-1335-4beb-b555-78635adc0d46" alt="pet_walk_wall">
+</p>
 This same decision making applies to the top side of the screen, with the rotation degree being 180 if swapping from the left side, or -180 if swapping from the right side. <br>
 
 
 ### Petting animation
 Throughout all of these movement choices, there is a hidden Window following the pet that contains a heart sprite.<br> 
-![heart_heart](https://github.com/user-attachments/assets/af83481e-91e1-44aa-b1e7-90363b5dc173) <br>
-
+<p align="center">
+  <img width="48" src="https://github.com/user-attachments/assets/af83481e-91e1-44aa-b1e7-90363b5dc173" alt="heart_sprite">
+</p>
 It receives all rotation degrees updates that the main sprite receives, and if the user right clicks the pet, this window becomes visible, its opacity gradually increases, and the sprites rotates 10 degrees back and forth relative to its starting degrees. <br>
-![pet_heart](https://github.com/user-attachments/assets/5c257182-f1bd-4c0f-820b-c233c68ffb66) <br>
-
+<p align="center">
+  <img width="200" src="https://github.com/user-attachments/assets/5c257182-f1bd-4c0f-820b-c233c68ffb66" alt="heart_sprite_animation">
+</p>
 
 ### Grabbing, flinging and gravity
 The last Functionatility, is the grabbing and flinging mechanic. <br>
 If ther left clicks (from now on i will refer to this as simply clicking) the pet, the pet enters a grabbed state: <br>
-![demonite_float_correct](https://github.com/user-attachments/assets/662378b5-bbfb-4d5b-b57f-8468dcc8981b) <br>
+<p align="center">
+  <img width="48" src="https://github.com/user-attachments/assets/662378b5-bbfb-4d5b-b57f-8468dcc8981b" alt="pet_float">
+</p> 
 While grabbed, the pet cannot perform movement actions, but can stick to the sides or top of the screen. <br>
 Additionaly, moving the mouse while the pet is grabbed, will move the pet's position along the mouse's position in the screen (This is relative to a variable True_Position which is calculated from subtracting the maximum screen size from the starting screen size), effectively creating a Window dragging function since the window will follow the pet's position. <br>
 
