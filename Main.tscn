@@ -157,15 +157,20 @@ func _process(delta):
 		$Timer3.start()
 		swap_direction_cooldown = false
 			#This is for far bottom corner, where the side starts
-	if _MainWindow.position.x == far_x_limit.x and sticked_side == false and animation_selector == 2 and swap_direction_cooldown == true:
+	if _MainWindow.position.x == far_x_limit.x and sticked_side == false and sticked_top == false and animation_selector == 2 and swap_direction_cooldown == true:
 		animation_selector = 1
 		$Timer3.start()
 		swap_direction_cooldown = false
+			#This is for top corners, if the character is sticked to the wall
 	if (_MainWindow.position.y <= close_y_limit.y or _MainWindow.position.y <= far_y_limit.y) and (_MainWindow.position.x == close_x_limit.x or _MainWindow.position.x == far_x_limit.x) and sticked_side == true and sticked_top == false and swap_direction_cooldown == true:
 		animation_selector = 1
 		$Timer3.start()
 		swap_direction_cooldown = false
-	
+			#This is for top right corner if the character is sticked to the top
+	if (_MainWindow.position.y == close_y_limit.y or _MainWindow.position.y == far_y_limit.y) and _MainWindow.position.x == far_x_limit.x and sticked_side == false and sticked_top == true and swap_direction_cooldown == true:
+		animation_selector = 1
+		$Timer3.start()
+		swap_direction_cooldown = false
 		
 #This controls the Top left corner swapping
 	if  _MainWindow.position.y == 0  and swap_cooldown == false and sticked_top == false:
@@ -201,7 +206,7 @@ func _process(delta):
 		if decide_stick == 0:
 			sticked_side = false #decide against swapping sides
 			if _MainWindow.position.y == far_y_limit.y and sticked_top == true:
-					animation_selector = 2
+					animation_selector = 1
 		if decide_stick == 1:
 			sticked_side = true
 			sticked_top = false
@@ -420,7 +425,6 @@ func _process(delta):
 		$AnimatedSprite2D.animation = \"fall\"
 	if heart_visible == true:
 		$AnimatedSprite2D.animation = \"falling\"
-		
 #This area is dedicated to functions, im not actually why godot places them down here, but here they are and here they stay
 func _on_timer_timeout() -> void:
 	if falling == false and dragging == false and heart_visible == false:
