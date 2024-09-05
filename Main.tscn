@@ -56,6 +56,8 @@ func _ready():
 	DisplayServer.window_set_current_screen(DisplayServer.get_keyboard_focus_screen()) #selects screen
 	_MainWindow.current_screen = DisplayServer.get_keyboard_focus_screen() #selects screen 
 	get_tree().get_root().set_transparent_background(true) 
+	Engine.max_fps = 60
+	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_TRANSPARENT, true)
 	$Window/Sprite2D.modulate.a8 = 100 #sets heart opacity
 	$Timer4.start()
 	
@@ -76,6 +78,8 @@ func _ready():
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	set_passthrough(position) #Lets you click through the character
+	#get_tree().get_root().set_transparent_background(true) 
+	#DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_TRANSPARENT, true) #updates transparency bc we had some issues in specific systems
 	var velocity = Vector2.ZERO # The player's movement vector.
 	if animation_selector == 0 and sticked_side == false and falling == false:
 		$AnimatedSprite2D.animation = \"idle\"
